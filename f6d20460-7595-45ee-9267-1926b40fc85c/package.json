@@ -1,0 +1,16 @@
+{
+  "name": "clearline-merchant-risk",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local Stripe test-mode payment event review dashboard",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "stripe": "^18.5.0"
+  }
+}

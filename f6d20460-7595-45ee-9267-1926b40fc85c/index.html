@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f7fa">
+    <meta name="description" content="A local Stripe test-mode dashboard for reviewing payment events.">
+    <title>Clearline — Risk review</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="dashboard.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Main navigation">
+        <a class="brand" href="#" aria-label="Clearline home">
+          <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+          <span>clearline</span>
+        </a>
+
+        <div class="workspace-switcher">
+          <span class="workspace-avatar">N</span>
+          <span class="workspace-name"><strong>Local workspace</strong><small>Stripe test mode</small></span>
+          <span class="chevron" aria-hidden="true">⌄</span>
+        </div>
+
+        <p class="nav-label">WORKSPACE</p>
+        <nav class="nav-list">
+          <a class="nav-link active" href="#overview" aria-current="page"><span class="nav-icon">◫</span>Overview</a>
+          <a class="nav-link" href="#events"><span class="nav-icon">▤</span>Checkout events<span class="nav-count" id="nav-open-count">0</span></a>
+          <a class="nav-link" href="#rules"><span class="nav-icon">☷</span>Risk rules</a>
+        </nav>
+
+        <div class="sidebar-bottom">
+          <div class="sidebar-note">
+            <span class="note-icon">✦</span>
+            <strong>Built for careful decisions</strong>
+            <p>Every signal is explainable. Review before you act.</p>
+          </div>
+          <a class="nav-link muted-link" href="#about"><span class="nav-icon">ⓘ</span>About this app</a>
+          <div class="profile">
+            <span class="profile-avatar">LO</span>
+            <span><strong>Local operator</strong><small>Loopback only</small></span>
+            <button class="icon-button profile-menu" aria-label="Profile options" title="Profile options">···</button>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main-content" id="overview">
+        <header class="topbar">
+          <div class="breadcrumbs"><span>Local workspace</span><span class="crumb-separator">/</span><strong>Overview</strong></div>
+          <div class="topbar-actions">
+            <span class="demo-pill"><span class="pulse-dot"></span>TEST MODE</span>
+            <button class="icon-button notification-button" aria-label="Notifications" title="Notifications">♧<span></span></button>
+            <span class="topbar-date" id="current-date"></span>
+          </div>
+        </header>
+
+        <section class="page-heading">
+          <div>
+            <p class="eyebrow" id="page-date"></p>
+            <h1>Risk overview</h1>
+            <p class="page-subtitle">Review signed Stripe test-mode payment events. Decisions here never change a payment.</p>
+          </div>
+          <button class="button button-secondary" id="refresh-button"><span aria-hidden="true">↻</span> Refresh events</button>
+        </section>
+
+        <section class="metric-grid" aria-label="Risk overview metrics">
+          <article class="metric-card">
+            <div class="metric-top"><span class="metric-label">Payment cases</span><span class="metric-icon icon-blue">↗</span></div>
+            <div class="metric-value" id="metric-total">—</div>
+            <div class="metric-foot"><span class="metric-neutral">Stripe test cases</span><span class="metric-foot-note">Stored locally</span></div>
+            <div class="sparkline spark-blue" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-top"><span class="metric-label">Needs review</span><span class="metric-icon icon-amber">◷</span></div>
+            <div class="metric-value" id="metric-review">—</div>
+            <div class="metric-foot"><span class="metric-warning">Open cases</span><span class="metric-foot-note">Review status only</span></div>
+            <div class="sparkline spark-amber" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-top"><span class="metric-label">High risk</span><span class="metric-icon icon-red">!</span></div>
+            <div class="metric-value" id="metric-high">—</div>
+            <div class="metric-foot"><span class="metric-danger">Review recommended</span><span class="metric-foot-note">No automatic action</span></div>
+            <div class="sparkline spark-red" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-top"><span class="metric-label">Reviewed</span><span class="metric-icon icon-green">✓</span></div>
+            <div class="metric-value" id="metric-reviewed">—</div>
+            <div class="metric-foot"><span class="metric-success">Decisions recorded</span><span class="metric-foot-note">Local SQLite</span></div>
+            <div class="sparkline spark-green" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          </article>
+        </section>
+
+        <section class="content-grid">
+          <article class="panel events-panel" id="events">
+            <div class="panel-heading">
+              <div><h2>Recent payment events</h2><p>Review explainable signals before making a decision.</p></div>
+              <button class="text-button" id="view-all-button">View all <span aria-hidden="true">→</span></button>
+            </div>
+            <div class="toolbar">
+              <label class="search-box"><span aria-hidden="true">⌕</span><input id="search-input" type="search" placeholder="Search payment or event ID" aria-label="Search payment or event ID"></label>
+              <label class="select-wrap"><span class="sr-only">Filter by risk</span><select id="risk-filter"><option value="all">All risk levels</option><option value="high">High risk</option><option value="medium">Medium risk</option><option value="low">Low risk</option></select></label>
+              <label class="select-wrap status-filter"><span class="sr-only">Filter by status</span><select id="status-filter"><option value="all">All statuses</option><option value="open">Open</option><option value="reviewed">Reviewed</option><option value="allowed">Low concern</option><option value="flagged">Flagged</option></select></label>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th scope="col">PAYMENT INTENT</th><th scope="col">AMOUNT</th><th scope="col">RISK</th><th scope="col">SIGNALS</th><th scope="col">REVIEW</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead>
+                <tbody id="events-table"></tbody>
+              </table>
+              <div class="empty-state" id="empty-state" hidden>
+                <span class="empty-icon">⌕</span><strong>No matching payment cases</strong><p>Try adjusting your search or filters.</p>
+              </div>
+            </div>
+            <div class="table-footer"><span id="result-count">Showing —</span><span>Only minimal payment metadata is stored</span></div>
+          </article>
+
+          <aside class="right-column">
+            <article class="panel queue-panel">
+              <div class="panel-heading compact-heading"><div><h2>Review queue</h2><p>Prioritized by local heuristics</p></div><span class="queue-icon">↗</span></div>
+              <div class="queue-summary"><span class="queue-number" id="queue-number">—</span><span>events need a closer look</span></div>
+              <div class="queue-list" id="queue-list"></div>
+              <button class="button button-primary queue-button" id="review-queue-button">Review next event <span aria-hidden="true">→</span></button>
+            </article>
+
+            <article class="panel rules-panel" id="rules">
+              <div class="panel-heading compact-heading"><div><h2>Risk rules</h2><p>Signals currently in use</p></div><button class="icon-button small-menu" aria-label="Risk rule options" title="Risk rule options">···</button></div>
+              <div class="rule-row"><span class="rule-status status-on"></span><span class="rule-copy"><strong>Repeated failed payments</strong><small>Recorded failures for the same PaymentIntent</small></span><span class="rule-weight">+35+</span></div>
+              <div class="rule-row"><span class="rule-status status-on"></span><span class="rule-copy"><strong>High-value amount</strong><small>At or above local review threshold</small></span><span class="rule-weight">+10</span></div>
+              <div class="rules-foot"><span class="rule-status status-info"></span>Illustrative heuristics · never auto-decline payments</div>
+            </article>
+          </aside>
+        </section>
+
+        <footer class="page-footer" id="about">
+          <span><span class="footer-shield">◈</span> Clearline <span class="footer-dot">·</span> Local Stripe test workspace</span>
+          <span id="connection-status">Connecting to the local API…</span>
+        </footer>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <dialog class="event-dialog" id="event-dialog" aria-labelledby="dialog-title">
+      <div class="dialog-header">
+        <div><p class="eyebrow">CHECKOUT REVIEW</p><h2 id="dialog-title">Event details</h2></div>
+        <button class="icon-button close-dialog" id="close-dialog" aria-label="Close details">×</button>
+      </div>
+      <div id="dialog-content"></div>
+      <div class="dialog-actions" id="dialog-actions"></div>
+    </dialog>
+  </body>
+</html>
